@@ -1,0 +1,48 @@
+Run a Static website with Docker: 
+
+First, we'll use Docker to run a static website in a container. The website is based on an existing image. 
+We'll pull a Docker image from Docker Store, run the container, and see how easy it is to set up a web server.The image that you are going to use 
+is a single-page website that was already created for this demo and is available on the Docker Store as dockersamples/static-site. You can download and run 
+the image directly in one go using docker run as follows. 
+"docker run -d dockersamples/static-site" 
+
+the "-d" enables detached mode. We are using this because the current version doesnt run with out this flag. This flag detaches the running container from the 
+terminal/shell and returns your prompt after the container starts. Prompt is the short text message at the start of the command line on a command line interface.
+
+Since the image doesn't exist on your Docker host, the Docker daemon first fetches it from the registry and then runs it as a container.
+Now that the server is running, do you see the website? What port is it running on? And more importantly, 
+how do you access the container directly from our host machine?
+
+The client didn't tell the Docker Engine to publish any of the ports, so you need to re-run the docker run command to add this instruction.
+Let's re-run the command with some new flags to publish ports and pass your name to the container to customize the message displayed. We'll use the -d option
+again to run the container in detached mode.
+
+But before we re run the docker image again, we need to stop the current one. In order to do that we need the conatiners ID. we can get that from docker ps command
+Then type the commands "docker stop bc93585d0072" and then remove this container by "docker rm bc93585d0072" 
+
+Now lets re run the docker run images, but this time give a name for our container, assign an environment variable, still have it in detached mode, give it a port
+"docker run --name static-site -e AUTHOR="Your Name" -d -P dockersamples/static-site" 
+
+-d will create a container with the process detached from our terminal
+-P will publish all the exposed container ports to random ports on the Docker host
+-e is how you pass environment variables to the container. so we can send a speacilized meassage. 
+--name allows you to specify a container name
+AUTHOR is the environment variable name and Your Name is the value that you can pass. In this case we will type Qasim 
+
+"docker run --name static-site -e AUTHOR="Qasim" -d -P dockersamples/static-site"
+
+Now you can see the ports that are running by typing "docker port static site"
+443/tcp -> 0.0.0.0:55000
+80/tcp -> 0.0.0.0:55001
+
+Now you can open this site using http://localhost:[YOUR_PORT_FOR 80/tcp]. For our example this is http://localhost:55001
+To find you hostname Head to the Apple menu > System Preferences > Network and then select the connection you are currently using: AirPort (wireless) or Ethernet (wired).
+Our hostname is 192.168.224.200. 
+So our final link would look like this "http://192.168.224.200:55001"
+
+You can also run a second webserver at the same time, specifying a custom host port mapping to the container's webserver.
+"docker run --name static-site-2 -e AUTHOR="Your Name" -d -p 8888:80 dockersamples/static-site"
+
+So the link for this site would be http://192.168.224.200:8888. Make sure the name for this container is changed. 
+To deploy this on a real server you would just need to install Docker, and run the docker command.
+To stop and remove the docker containers you can do so by the name of the docker containers you gave them. 
