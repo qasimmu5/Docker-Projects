@@ -1,0 +1,62 @@
+What if we could bundle all our application code, support binaries and configuration together and only do that once. Lets call that an Image. And we take that
+image and deploy it onto a server. We can deploy multiple images onto a server. And if one of the images go down, then you just put another image out there, so
+the application is back up and running. 
+
+We can look at our application and servers as ephemeral. Which means short lived. So if they die or not available, its okay we can easily replace them. So we can
+treat our containers as ephemeral. 
+
+Docker has 3 phases: 
+1) Build Image - package everything your application needs to run
+2) Ship Image - ship these images to runtimes in your cloud or your local developer machine.
+3) Run Image - execute your applications 
+
+Installing Docker for Mac Apple chip -> https://docs.docker.com/desktop/mac/install/
+
+Before you install Docker, you would need to install Rosetta2. What is it? Well Rosetta2 is to bridge between intel and apple processors. It basically translates
+apps built for intel so they will run on Apple Silicon.
+
+Docker File for creating Docker Images: 
+So a docker file is used to build your image. Basically list of commands that are sent to the docker engine 
+
+FROM node:12.16.3
+
+WORKDIR /code 
+
+ENV PORT 80 
+
+COPY package.json /code/package.json
+
+RUN npm install 
+
+COPY . /code
+
+CMD [ "node", "src/server.js" ] 
+
+That is a typical docker file to create a docker image. 
+So we first start with "FROM". We start from the base image. So we can start with a base image that had already everything we need in it. So this example 
+is the node base image.
+
+Next we have the WORKDIR which is the working directory and what this does is tells is create this directory / code. And use that as our working directory.
+The WORKDIR instruction sets the working directory for any RUN, CMD, ENTRYPOINT, COPY and ADD instructions that follow it in the Dockerfile.
+The WORKDIR instruction can be used multiple times in a Dockerfile. 
+
+Next we have the ENV which is the environment variable. So environment variable will be accessed by any processes that are running inside your image. 
+ENV <key>=<value> ... 
+So basically like java or python how you set up variables. you can do the same in docker images. 
+Example would be -> ENV MY_CAT=fluffy. 
+If you want multiple variables then you can do this. -> 
+ENV MY_NAME="John Doe" MY_DOG=Rex\ The\ Dog \
+    MY_CAT=fluffy
+
+RUN command, everything after the RUN command, docker will execute. So in this case it will run "npm install" inside the image. npm is the node package manager
+
+COPY . /code -> this means we will copy everything in our working direcotory or our local directory which is denotated by the dot. and copy all that and put it
+inside the code directory. 
+
+CMD -> command is used to give the engine a default command that when it starts our container. So when you tell docker to our image as a container, docker
+looks at the CMD and run that line to our image.
+
+Now we want to build our image. 
+
+
+    
