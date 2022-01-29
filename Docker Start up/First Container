@@ -1,0 +1,31 @@
+Going to run an Alpine Linux container (a lightweight linux distribution) on our system.
+
+Alpine Linux is an independent, non-commercial, general purpose Linux distribution designed for power users who appreciate security, 
+simplicity and resource efficiency.
+
+type this in your terminal "docker pull alpine"
+the pull command willl fetch the alpine image from the Docker registry and saves it in our system. Use the "docker images" command to see all the list
+of the images in your system. 
+
+Lets run a docker container based on this alpine image. Type "docker run alpine ls -l"
+what "ls -l" does is to list files and directories. 
+When you run "docker run alpine", you provided a command (ls -l), so Docker started the command specified and you saw the listing
+
+So what were the steps taken? 
+1. Docker client contacts docker daemon 
+2. The Docker daemon checks local store if the image (alpine in this case) is available locally, and if not, downloads it from Docker Store. 
+(Since we have issued docker pull alpine before, the download step is not necessary)
+3. The Docker daemon creates the container and then runs a command in that container. In this case it was "ls -l"
+4. The Docker daemon streams the output of the command to the Docker client
+
+Another example is "docker run alpine echo "hello world"" this line will run alpine and print out hello world in our container and then exit
+Imagine booting up a virtual machine, running a command and then killing it. Now you know why they say containers are fast!
+
+If you run "docker run alpine /bin/sh" then nothing will show up, because these interactive shells will exit after running any scripted commands, 
+unless they are run in an interactive terminal. in order to run scripted commands and be in an interactive terminal type "docker run -it alpine /bin/sh"
+the "-it" shows that you are in an interactive terminal. Now you are inside the container and you can try out different commands. To exit out of the container
+type "exit". if you type "uname -a" then you get the name of the operating system of the container.
+
+"docker ps" shows all the container that are running 
+"docker ps -a" shows a list of containers that you ran. Notice that the STATUS column shows that these containers exited a few minutes ago.
+
