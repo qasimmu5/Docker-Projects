@@ -1,3 +1,5 @@
+Link for this tutorial -> https://docs.docker.com/get-started/
+
 What if we could bundle all our application code, support binaries and configuration together and only do that once. Lets call that an Image. And we take that
 image and deploy it onto a server. We can deploy multiple images onto a server. And if one of the images go down, then you just put another image out there, so
 the application is back up and running. 
