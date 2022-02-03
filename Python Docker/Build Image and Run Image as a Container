@@ -1,0 +1,220 @@
+Prerequisites: 
+
+Enabling Buildkit: 
+Before we start building images, ensure you have enabled BuildKit on your machine. BuildKit allows you to build Docker images efficiently. 
+BuildKit is enabled by default for all users on Docker Desktop. If you have installed Docker Desktop, you don’t have to manually enable BuildKit. 
+
+To enable docker BuildKit by default, set daemon configuration in /etc/docker/daemon.json feature to true and restart the daemon. If the daemon.json file 
+doesn’t exist, create new file called daemon.json and then add the following to the file.
+{
+  "features":{"buildkit" : true}
+}
+Restart Docker daemon. 
+You can also make "buildkit" : true by going to docker desktop and then going to preference and go to docker engine. 
+
+Overview: 
+An image includes everything needed to run an application - the code or binary, runtime, dependencies, and any other file system objects required.
+
+A Sample Hello World Application: 
+Let’s create a simple Python application using the Flask framework that we’ll use as our example. Create a directory in your local machine named 
+python-docker and follow the steps below to create a simple web server.
+
+ cd /path/to/python-docker
+ pip3 install Flask
+ pip3 freeze | grep Flask >> requirements.txt
+ touch app.py
+ 
+ Notes: So you can create a folder python-docker in your desktop. So just in terminal cd to desktop and then cd to python-docker. Install Flask. Then the line
+ Flask >> requirements.txt creates a text file inside this folder and in this text file it shows: Flask==2.0.2. What this is the Flask version. Now the next line
+ touch app.py creates a python file called app.py. 
+ 
+ Now, let’s add some code to handle simple web requests. Open this working directory in your favorite IDE and enter the following code into the app.py file.
+ 
+from flask import Flask
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return 'Hello, Docker!'
+    
+So write this simple flask web application code in the app.py. What this simply does is prints 'Hello, Docker!' when the user opens the link. 
+
+Test the Application: 
+Let’s start our application and make sure it’s running properly. Open your terminal and navigate to the working directory you created. So go to the folder 
+python-docker where the python file is. Type the following command: 
+
+python3 -m flask run
+
+What -m is: When called with -m module-name, the given module is located on the Python module path and executed as a script. 
+To test that the application is working properly, open a new browser and navigate to http://localhost:5000. It will say it is running on: http://127.0.0.1:5000/. 
+Switch back to the terminal where our server is running and you should see the following requests in the server logs. 
+The data and timestamp will be different on your machine. 
+So the timestamp printed in the terminal was: 127.0.0.1 - - [03/Feb/2022 10:53:33] "GET / HTTP/1.1" 200 -
+
+Creating a Dockerfile for Python: 
+A Dockerfile is a text document that contains the instructions to assemble a Docker image. When we tell Docker to build our image by executing the docker build 
+command, Docker reads these instructions, executes them, and creates a Docker image as a result.
+In the root of your project, create a file named Dockerfile and open this file in your text editor, or you can open in VScode which is a code editor. 
+Also when you create the dockerfile make sure it doesnt have any extension to it. 
+
+The default filename to use for a Dockerfile is Dockerfile (without a file- extension). Using the default name allows you to run the docker build command without 
+having to specify additional command flags.
+
+The first line to add to a Dockerfile is a # syntax parser directive. While optional, this directive instructs the Docker builder what syntax to use when parsing 
+the Dockerfile, and allows older Docker versions with BuildKit enabled to upgrade the parser before starting the build. Parser directives must appear before any 
+other comment, whitespace, or Dockerfile instruction in your Dockerfile, and should be the first line in Dockerfiles.We recommend using docker/dockerfile:1, which 
+always points to the latest release of the version 1 syntax.
+
+# syntax=docker/dockerfile:1
+
+Next, we need to add a line in our Dockerfile that tells Docker what base image we would like to use for our application.
+
+FROM python:3.8-slim-buster
+
+Docker images can be inherited from other images. Therefore, instead of creating our own base image, we’ll use the official Python image that already has all the 
+tools and packages that we need to run a Python application. But this official Python image is based on the Alpine linux OS. 
+
+To make things easier when running the rest of our commands, let’s create a working directory, this is the working directory of the docker container at any given
+time. So any RUN , CMD , ADD , COPY , or ENTRYPOINT command will be executed in the specified working directory. This instructs Docker to use this path as the 
+default location for all subsequent commands. By doing this, we do not have to type out full file paths but can use relative paths based on the working directory.
+
+WORKDIR /app
+
+Usually, the very first thing you do once you’ve downloaded a project written in Python is to install pip packages. This ensures that your application has all its 
+dependencies installed.
+
+Before we can run pip3 install, we need to get our requirements.txt file into our image. We’ll use the COPY command to do this. The COPY command takes two 
+parameters. The first parameter tells Docker what file(s) you would like to copy into the image. The second parameter tells Docker where you want that file(s) to 
+be copied to. We’ll copy the requirements.txt file into our working directory /app. So in this case the file name is requirements.txt, 
+
+COPY requirements.txt /app/
+
+Once we have our requirements.txt file inside the image, we can use the RUN command to execute the command pip3 install. This works exactly the same as if we 
+were running pip3 install locally on our machine, but this time the modules are installed into the image. This will install the flask for framework dependency 
+for our python in the container
+
+RUN pip3 install -r requirements.txt
+
+At this point, we have an image that is based on Python version 3.8 and we have installed our dependencies. The next step is to add our source code into the image. 
+We’ll use the COPY command just like we did with our requirements.txt file above. This COPY command takes all the files located in the current directory and copies 
+them into the image. So the current directory in your machine is the docker-python folder, which is represented by the first dot (.), the second dot shows the 
+current directory in the container and in this case it is the working directory we created called /app which is also represented by the second dot (.). 
+
+COPY . .
+
+Now, all we have to do is to tell Docker what command we want to run when our image is executed inside a container. We do this using the CMD command. 
+Note that we need to make the application externally visible (i.e. from outside the container) by specifying --host=0.0.0.0. So then the application can talk 
+outside the container. 
+
+CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
+
+Here is the complete Dockerfile:
+
+# syntax=docker/dockerfile:1
+
+FROM python:3.8-slim-buster
+
+WORKDIR /app
+
+COPY requirements.txt /app/
+RUN pip3 install -r requirements.txt
+
+COPY . .
+
+CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
+
+Directory Structure: 
+We created a directory in our local machine called python-docker and created a simple Python application using the Flask framework. We also used the 
+requirements.txt file to gather our requirements, and created a Dockerfile containing the commands to build an image. The Python application directory structure 
+would now look like:
+python-docker
+|____ app.py
+|____ requirements.txt
+|____ Dockerfile
+
+Build an Image: 
+We use the docker build command. The docker build command builds Docker images from a Dockerfile and a “context”. A build’s context is the set of files located 
+in the specified PATH or URL. The Docker build process can access any of the files located in this context. So make sure you go to the directory where the 
+Dockerfile is located for this project and where all the other files are. 
+
+The build command optionally takes a --tag flag. The tag is used to set the name of the image and an optional tag in the format name:tag. We’ll leave off the 
+optional tag for now to help simplify things. If you do not pass a tag, Docker uses “latest” as its default tag.
+
+docker build --tag python-docker .
+
+In this case the name of this image is python-docker, which you can change anytime to any other name. The "." represents the current working directory where 
+your Dockerfile is in for this project. 
+
+View Local Images: 
+To see a list of images we have on our local machine, we have two options. One is to use the CLI and the other is to use Docker Desktop. As we are currently 
+working in the terminal let’s take a look at listing images using the CLI.
+To list images, simply run the "docker images" command.
+
+You should see at least two images listed. One for the base image 3.8-slim-buster is the tag and the name is python, and the other image we just built 
+python-docker:latest. In this case python-docker is the name of the image and latest is the tag. 
+
+Tag Images: (finish this later, not that important)
+
+Run your Image as a Container: 
+A container is a normal operating system process except that this process is isolated in that it has its own file system, its own networking, and its own isolated 
+process tree separate from the host.
+To run an image inside of a container, we use the "docker run" command. The docker run command requires one parameter which is the name of the image. Let’s start 
+our image and make sure it is running correctly. Run the following command in your terminal.
+
+docker run python-docker
+
+After running this command, you’ll notice that you were not returned to the command prompt for your host machine. This is because our application is a REST server 
+and runs in a loop waiting for incoming requests without returning control back to the OS until we stop the container. So basically we cant go back to the OS 
+terminal unless we stop the container. But we can open a new terminal. 
+Let’s open a new terminal then make a GET request to the server using the curl command. This is to check if the link is working. 
+
+curl localhost:5000
+
+As you can see, our curl command failed because the connection to our server was refused. This means, we were not able to connect to the localhost on port 5000. 
+This is expected because our container is running in isolation which includes networking. Let’s stop the container and restart with port 5000 published on our 
+local network.
+
+To stop the container, press ctrl-c. This will return you to the terminal prompt.
+
+To publish a port for our container, we’ll use the --publish flag (-p for short) on the docker run command. The format of the --publish command is 
+[host port]:[container port]. So, if we wanted to expose port 5000 inside the container to port 3000 outside the container, we would pass 3000:5000 to 
+the --publish flag. So the format is [host port (outside the container)]:[container port (inside the container)]
+We did not specify a port when running the flask application in the container and the default is 5000.
+
+docker run --publish 3000:5000 python-docker
+
+To test it if it is working. Go to your browser and go to your localhost:3000. The format is [localhost]:[host port]. In this case my local host IP is 
+192.168.2.153. So I would search up:
+http://192.168.2.153:3000/
+It should work! 
+You can also test it by the curl command: curl 192.168.2.153:3000
+
+Run in Detached Mode: 
+our sample application is a web server and we don’t have to be connected to the container. Docker can run your container in detached mode or in the background. 
+To do this, we can use the --detach or -d for short. Docker starts your container the same as before but this time will “detach” from the container and return 
+you to the terminal prompt of your host machine.
+
+docker run -d -p 3000:5000 python-docker
+
+Docker started our container in the background and printed the Container ID on the terminal.
+
+Listing the Containers: 
+Since we ran our container in the background, how do we know if our container is running or what other containers are running on our machine? Well, we can run 
+the "docker ps" command. Just like on Linux to see a list of processes on your machine, we would run the ps command. In the same spirit, we can run the "docker ps"
+command which displays a list of containers running on our machine.
+
+The docker ps command provides a bunch of information about our running containers. We can see the container ID, The image running inside the container, the 
+command that was used to start the container, when it was created, the status, ports that exposed and the name of the container.
+
+You are probably wondering where the name of our container is coming from. Since we didn’t provide a name for the container when we started it, Docker generated 
+a random name. We’ll fix this in a minute, but first we need to stop the container. To stop the container, run the "docker stop" command which does just that, 
+stops the container. You need to pass the name of the container or you can use the container ID.
+
+docker stop interesting_panini
+
+Stop, Start and Name Containers: (Can finish this section later, not that important) 
+
+
+
+
+
