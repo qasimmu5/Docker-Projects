@@ -212,8 +212,31 @@ stops the container. You need to pass the name of the container or you can use t
 
 docker stop interesting_panini
 
-Stop, Start and Name Containers: (Can finish this section later, not that important) 
+Stop, Start and Name Containers: 
+You can start, stop, and restart Docker containers. When we stop a container, it is not removed, but the status is changed to stopped and the process inside the 
+container is stopped. When we ran the "docker ps" command in the previous module, the default output only shows running containers. When we pass the 
+--all or -a for short, we see all containers on our machine, irrespective of their start or stop status.
 
+docker ps -a
+
+You should now see several containers listed. These are containers that we started and stopped but have not been removed.
+
+Let’s restart the container that we just stopped. Locate the name of the container we just stopped and replace the name of the container below in the restart 
+command.
+
+docker restart interesting_panini
+
+Observe the status of the container is “Up X seconds”. When you restart a container, it starts with the same flags or commands that it was originally started 
+with.
+To remove a container, simple run the docker rm command passing the container name. You can pass multiple container names to the command using a single command. 
+Again, replace the container names in the following command with the container names from your system.
+
+docker rm interesting_panini
+
+To name a container, we just need to pass the --name flag to the docker run command.
+docker run -d -p 5000:5000 --name rest-server python-docker
+
+So above you can see we used --name flag to name the container rest-server and the pythong-docker is the image we are using. 
 
 
 
